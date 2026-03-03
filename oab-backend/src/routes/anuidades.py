@@ -1,13 +1,10 @@
 from flask import Blueprint, request, jsonify, session
-from src.main import db
+from src.database import db
 from src.models.anuidade import Anuidade
-from datetime import datetime, date
-from decimal import Decimal
 
 anuidades_bp = Blueprint('anuidades', __name__)
 
 def verificar_autenticacao():
-    """Verifica se o usuário está autenticado"""
     advogado_id = session.get('advogado_id')
     if not advogado_id:
         return None
@@ -15,88 +12,53 @@ def verificar_autenticacao():
 
 @anuidades_bp.route('', methods=['GET'])
 def listar_anuidades():
-    """Lista todas as anuidades do advogado logado"""
     advogado_id = verificar_autenticacao()
-    
     if not advogado_id:
         return jsonify({'erro': 'Não autenticado'}), 401
-    
     anuidades = Anuidade.query.filter_by(advogado_id=advogado_id).order_by(Anuidade.ano.desc()).all()
-    
-    return jsonify({
-        'anuidades': [anuidade.to_dict() for anuidade in anuidades]
-    }), 200
+    return jsonify({'anuidades': [a.to_dict() for a in anuidades]}), 200
 
 @anuidades_bp.route('/<int:anuidade_id>', methods=['GET'])
 def obter_anuidade(anuidade_id):
-    """Obtém detalhes de uma anuidade específica"""
     advogado_id = verificar_autenticacao()
-    
     if not advogado_id:
         return jsonify({'erro': 'Não autenticado'}), 401
-    
     anuidade = Anuidade.query.filter_by(id=anuidade_id, advogado_id=advogado_id).first()
-    
     if not anuidade:
         return jsonify({'erro': 'Anuidade não encontrada'}), 404
-    
     return jsonify(anuidade.to_dict()), 200
 
 @anuidades_bp.route('/<int:anuidade_id>/simular', methods=['POST'])
 def simular_pagamento(anuidade_id):
-    """Simula opções de pagamento para uma anuidade"""
     advogado_id = verificar_autenticacao()
-    
     if not advogado_id:
         return jsonify({'erro': 'Não autenticado'}), 401
-    
     anuidade = Anuidade.query.filter_by(id=anuidade_id, advogado_id=advogado_id).first()
-    
     if not anuidade:
         return jsonify({'erro': 'Anuidade não encontrada'}), 404
     
     data = request.get_json()
-    forma_pagamento = data.get('forma_pagamento', 'vista')  # 'vista' ou 'parcelado'
-    numero_parcelas = data.get('numero_parcelas', 1)
-    
-    valor_base = float(anuidade.valor_atual)
+    forma = data.get('forma_pagamento', 'vista')
+    parcelas = data.get('numero_parcelas', 1)
+    valor_base = float(anuidade.valor_total_atualizado)
     opcoes = []
     
-    # Pagamento à vista
-    if forma_pagamento == 'vista':
+    if forma == 'vista':
         desconto = float(anuidade.desconto_maximo)
-        valor_com_desconto = valor_base * (1 - desconto / 100)
-        
+        valor_final = valor_base * (1 - desconto / 100)
         opcoes.append({
-            'tipo': 'vista',
-            'valor_original': valor_base,
-            'desconto_percentual': desconto,
-            'valor_final': round(valor_com_desconto, 2),
-            'economia': round(valor_base - valor_com_desconto, 2)
+            'tipo': 'vista', 'valor_original': valor_base, 'desconto_percentual': desconto,
+            'valor_final': round(valor_final, 2), 'economia': round(valor_base - valor_final, 2)
+        })
+    elif forma == 'parcelado':
+        if parcelas < 2 or parcelas > 12:
+            return jsonify({'erro': 'Parcelas entre 2 e 12'}), 400
+        taxa = 0.02
+        total = valor_base * (1 + taxa * parcelas)
+        opcoes.append({
+            'tipo': 'parcelado', 'numero_parcelas': parcelas, 'valor_original': valor_base,
+            'taxa_juros_mensal': taxa * 100, 'valor_total': round(total, 2),
+            'valor_parcela': round(total / parcelas, 2), 'juros_total': round(total - valor_base, 2)
         })
     
-    # Pagamento parcelado
-    elif forma_pagamento == 'parcelado':
-        if numero_parcelas < 2 or numero_parcelas > 12:
-            return jsonify({'erro': 'Número de parcelas deve estar entre 2 e 12'}), 400
-        
-        # Juros simples de 2% ao mês
-        taxa_juros = 0.02
-        valor_com_juros = valor_base * (1 + (taxa_juros * numero_parcelas))
-        valor_parcela = valor_com_juros / numero_parcelas
-        
-        opcoes.append({
-            'tipo': 'parcelado',
-            'numero_parcelas': numero_parcelas,
-            'valor_original': valor_base,
-            'taxa_juros_mensal': taxa_juros * 100,
-            'valor_total': round(valor_com_juros, 2),
-            'valor_parcela': round(valor_parcela, 2),
-            'juros_total': round(valor_com_juros - valor_base, 2)
-        })
-    
-    return jsonify({
-        'anuidade': anuidade.to_dict(),
-        'opcoes': opcoes
-    }), 200
-
+    return jsonify({'anuidade': anuidade.to_dict(), 'opcoes': opcoes}), 200

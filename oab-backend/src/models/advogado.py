@@ -15,19 +15,15 @@ class Advogado(db.Model):
     data_cadastro = db.Column(db.DateTime, default=datetime.utcnow)
     ativo = db.Column(db.Boolean, default=True)
     
-    # Relacionamentos
     anuidades = db.relationship('Anuidade', backref='advogado', lazy=True, cascade='all, delete-orphan')
     
     def set_senha(self, senha):
-        """Define a senha do advogado com hash"""
         self.senha_hash = generate_password_hash(senha)
     
     def verificar_senha(self, senha):
-        """Verifica se a senha está correta"""
         return check_password_hash(self.senha_hash, senha)
     
     def to_dict(self):
-        """Converte o objeto para dicionário"""
         return {
             'id': self.id,
             'nome_completo': self.nome_completo,
@@ -38,4 +34,3 @@ class Advogado(db.Model):
             'data_cadastro': self.data_cadastro.isoformat() if self.data_cadastro else None,
             'ativo': self.ativo
         }
-

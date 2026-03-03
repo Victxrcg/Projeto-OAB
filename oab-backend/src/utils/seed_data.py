@@ -7,9 +7,6 @@ from decimal import Decimal
 import random
 
 def seed_database():
-    """Popula o banco de dados com dados fictícios"""
-    
-    # Lista de nomes fictícios
     nomes = [
         ('João Silva', '12345678901', 'joao.silva@email.com', '11987654321'),
         ('Maria Santos', '23456789012', 'maria.santos@email.com', '11976543210'),
@@ -21,86 +18,86 @@ def seed_database():
         ('Fernanda Lima', '89012345678', 'fernanda.lima@email.com', '11910987654'),
         ('Ricardo Souza', '90123456789', 'ricardo.souza@email.com', '11909876543'),
         ('Patricia Rocha', '01234567890', 'patricia.rocha@email.com', '11998765432'),
-        ('Lucas Martins', '11223344556', 'lucas.martins@email.com', '11987654321'),
-        ('Camila Barbosa', '22334455667', 'camila.barbosa@email.com', '11976543210'),
-        ('Bruno Carvalho', '33445566778', 'bruno.carvalho@email.com', '11965432109'),
-        ('Amanda Dias', '44556677889', 'amanda.dias@email.com', '11954321098'),
-        ('Felipe Ribeiro', '55667788990', 'felipe.ribeiro@email.com', '11943210987'),
+        ('Lucas Martins', '11223344556', 'lucas.martins@email.com', '11987654322'),
+        ('Camila Barbosa', '22334455667', 'camila.barbosa@email.com', '11976543211'),
+        ('Bruno Carvalho', '33445566778', 'bruno.carvalho@email.com', '11965432110'),
+        ('Amanda Dias', '44556677889', 'amanda.dias@email.com', '11954321099'),
+        ('Felipe Ribeiro', '55667788990', 'felipe.ribeiro@email.com', '11943210988'),
     ]
     
-    # Criar advogados
     advogados = []
     for nome, cpf, email, telefone in nomes:
-        advogado = Advogado(
-            nome_completo=nome,
-            cpf=cpf,
-            email=email,
-            telefone=telefone,
-            numero_oab=f'SP{random.randint(100000, 999999)}'
-        )
-        advogado.set_senha('123456')  # Senha padrão para todos
+        advogado = Advogado(nome_completo=nome, cpf=cpf, email=email, telefone=telefone,
+                            numero_oab=f'{random.randint(10000, 99999)}')
+        advogado.set_senha('123456')
         advogados.append(advogado)
         db.session.add(advogado)
-    
     db.session.commit()
     
-    # Criar anuidades
-    anos = [2020, 2021, 2022, 2023, 2024]
-    valores_base = [500.00, 750.00, 1000.00, 1250.00, 1500.00, 1750.00, 2000.00]
-    status_opcoes = ['pendente', 'pendente', 'pendente', 'pago', 'vencido']
+    anos = [2020, 2021, 2022, 2023, 2024, 2025]
+    valores_base = [800.00, 950.00, 1100.00, 1221.79, 1350.00, 1500.00, 1750.00, 2000.00]
     
     for advogado in advogados:
-        # Cada advogado terá 2-4 anuidades
-        num_anuidades = random.randint(2, 4)
-        anos_advogado = random.sample(anos, num_anuidades)
+        num_anuidades = random.randint(2, 5)
+        anos_advogado = random.sample(anos, min(num_anuidades, len(anos)))
         
         for ano in anos_advogado:
-            valor_original = Decimal(str(random.choice(valores_base)))
-            status = random.choice(status_opcoes)
+            valor_principal = Decimal(str(random.choice(valores_base)))
+            tipo = random.choice(['pendente', 'pendente', 'pendente', 'pago', 'vencido'])
+            num_parcela = random.randint(1, 12)
             
-            # Calcular valor atual (com juros se vencido)
-            if status == 'vencido':
+            if tipo == 'vencido':
                 meses_atraso = random.randint(1, 24)
-                juros = valor_original * Decimal('0.02') * meses_atraso  # 2% ao mês
-                valor_atual = valor_original + juros
-            elif status == 'pago':
-                valor_atual = Decimal('0.00')
+                multa = (valor_principal * Decimal('0.02')).quantize(Decimal('0.01'))
+                juros = (valor_principal * Decimal('0.01') * meses_atraso).quantize(Decimal('0.01'))
+                valor_total = valor_principal + multa + juros
+                status_debito = 'A receber'
+                status = 'vencido'
+            elif tipo == 'pago':
+                multa = Decimal('0.00')
+                juros = Decimal('0.00')
+                valor_total = valor_principal
+                status_debito = 'Quitado'
+                status = 'pago'
             else:
                 meses_atraso = random.randint(0, 6)
-                juros = valor_original * Decimal('0.02') * meses_atraso
-                valor_atual = valor_original + juros
+                if meses_atraso > 0:
+                    multa = (valor_principal * Decimal('0.02')).quantize(Decimal('0.01'))
+                    juros = (valor_principal * Decimal('0.01') * meses_atraso).quantize(Decimal('0.01'))
+                else:
+                    multa = Decimal('0.00')
+                    juros = Decimal('0.00')
+                valor_total = valor_principal + multa + juros
+                status_debito = 'A receber'
+                status = 'pendente'
             
-            # Data de vencimento
-            data_vencimento = date(ano, 1, 31)
-            
-            # Desconto máximo (10% a 50%)
+            mes_venc = random.choice([1, 3, 6, 9])
+            dia_venc = random.choice([10, 15, 20, 28])
+            data_vencimento = date(ano, mes_venc, dia_venc)
             desconto_maximo = Decimal(str(random.randint(10, 50)))
             
             anuidade = Anuidade(
-                advogado_id=advogado.id,
-                ano=ano,
-                valor_original=valor_original,
-                valor_atual=valor_atual,
-                data_vencimento=data_vencimento,
-                status=status,
-                desconto_maximo=desconto_maximo
+                advogado_id=advogado.id, ano=ano, descricao_cobranca=f'Anuidade de {ano}',
+                valor_principal=valor_principal, multa=multa, juros=juros,
+                valor_total_atualizado=valor_total, data_vencimento_original=data_vencimento,
+                status_debito=status_debito, situacao_parcela=str(num_parcela),
+                desconto_maximo=desconto_maximo, valor_original=valor_principal,
+                valor_atual=valor_total if status != 'pago' else Decimal('0.00'),
+                data_vencimento=data_vencimento, status=status
             )
-            
             db.session.add(anuidade)
-            
-            # Se pago, criar registro de pagamento
-            if status == 'pago':
-                pagamento = Pagamento(
-                    anuidade_id=anuidade.id,
-                    valor_pago=valor_original,
-                    forma_pagamento=random.choice(['cartao', 'boleto']),
-                    numero_parcelas=random.choice([1, 3, 6]),
-                    status='aprovado',
-                    codigo_transacao=f'PAY{random.randint(100000, 999999)}',
-                    data_pagamento=datetime.now() - timedelta(days=random.randint(1, 365))
-                )
-                db.session.add(pagamento)
     
     db.session.commit()
-    print("✅ Dados fictícios criados com sucesso!")
-
+    
+    anuidades_pagas = Anuidade.query.filter_by(status='pago').all()
+    for anuidade in anuidades_pagas:
+        pagamento = Pagamento(
+            anuidade_id=anuidade.id, valor_pago=float(anuidade.valor_principal),
+            forma_pagamento=random.choice(['cartao', 'boleto', 'pix']),
+            numero_parcelas=random.choice([1, 3, 6]), status='aprovado',
+            codigo_transacao=f'PAY{random.randint(100000, 999999)}',
+            data_pagamento=datetime.now() - timedelta(days=random.randint(1, 365))
+        )
+        db.session.add(pagamento)
+    db.session.commit()
+    print("Dados fictícios criados com sucesso!")
