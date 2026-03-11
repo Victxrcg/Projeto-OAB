@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { ArrowLeft, DollarSign, CreditCard, FileText, Loader2, CheckCircle, Lock, Copy, Zap } from 'lucide-react'
+import { ArrowLeft, DollarSign, CreditCard, FileText, Loader2, CheckCircle, Lock, Copy } from 'lucide-react'
 
 const fmt = (value) => Number(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
@@ -83,7 +83,7 @@ function PagamentoPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Resumo */}
         <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900 mb-5"><Zap size={20} className="text-yellow-500" /> Resumo do Pedido</h3>
+          <h3 className="text-lg font-bold text-gray-900 mb-5">Resumo do Pedido</h3>
           <div className="space-y-3 text-sm">
             <div className="flex justify-between"><span className="text-gray-500">Anuidade</span><span className="text-primary font-bold">{anuidade?.ano}</span></div>
             <div className="flex justify-between"><span className="text-gray-500">Forma de pagamento</span><span className="text-primary font-bold">{nomeMetodo[metodo]}</span></div>

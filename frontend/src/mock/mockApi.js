@@ -2,7 +2,9 @@ import {
   MOCK_CPF_MARIA,
   mockAdvogadoMaria,
   mockAnuidades,
+  mockAcordos,
   getMockAnuidadeById,
+  getMockAcordoDetalhe,
 } from './mockData'
 
 /**
@@ -21,6 +23,15 @@ export function createMockApi() {
       }
       if (url === '/anuidades') {
         return Promise.resolve({ data: { anuidades: mockAnuidades } })
+      }
+      if (url === '/acordos') {
+        return Promise.resolve({ data: { acordos: mockAcordos } })
+      }
+      const acordoMatch = url.match(/^\/acordos\/(\d+)$/)
+      if (acordoMatch) {
+        const detalhe = getMockAcordoDetalhe(acordoMatch[1])
+        if (detalhe) return Promise.resolve({ data: detalhe })
+        return Promise.reject({ response: { status: 404, data: { erro: 'Acordo não encontrado' } } })
       }
       const match = url.match(/^\/anuidades\/(\d+)$/)
       if (match) {

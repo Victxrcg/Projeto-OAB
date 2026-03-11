@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext'
 import LoginPage from './components/LoginPage'
 import Dashboard from './components/Dashboard'
 import PagamentoPage from './components/PagamentoPage'
+import MeusAcordosPage from './components/MeusAcordosPage'
 import Header from './components/Header'
 import Footer from './components/Footer'
 
@@ -21,6 +22,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/meus-acordos" element={<ProtectedRoute><MeusAcordosPage /></ProtectedRoute>} />
       <Route path="/pagamento/:id" element={<ProtectedRoute><PagamentoPage /></ProtectedRoute>} />
       <Route path="/" element={<Navigate to="/login" />} />
     </Routes>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import AnuidadeCard from './AnuidadeCard'
-import { Loader2, AlertCircle, CreditCard, CalendarRange, Info } from 'lucide-react'
+import { Loader2, AlertCircle, CreditCard, CalendarRange } from 'lucide-react'
 
 function Dashboard() {
   const { api, advogado } = useAuth()
@@ -22,13 +22,12 @@ function Dashboard() {
   }
 
   const anuidadesPendentes = anuidades.filter(a => a.status === 'pendente' || a.status === 'vencido')
-  const anuidadesPagas = anuidades.filter(a => a.status === 'pago')
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="text-center">
         <Loader2 className="animate-spin text-primary mx-auto mb-4" size={48} />
-        <p className="text-gray-600">Carregando anuidades...</p>
+        <p className="text-gray-600">Carregando oportunidades...</p>
       </div>
     </div>
   )
@@ -36,7 +35,7 @@ function Dashboard() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Minhas Anuidades</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Minhas oportunidades</h1>
         <p className="text-gray-600 mt-1">
           Olá, <span className="font-semibold text-gray-900">{advogado?.nome_completo?.toUpperCase()}</span>!
           {' '}Confira suas oportunidades de pagamento e regularize sua situação com a OAB.
@@ -63,20 +62,9 @@ function Dashboard() {
         </div>
       )}
 
-      {anuidadesPagas.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Info size={20} className="text-green-600" /> Anuidades Quitadas
-          </h2>
-          <div className="space-y-4">
-            {anuidadesPagas.map((a) => <AnuidadeCard key={a.id} anuidade={a} />)}
-          </div>
-        </div>
-      )}
-
       {anuidades.length === 0 && (
         <div className="bg-white rounded-lg shadow p-12 text-center">
-          <p className="text-gray-600 text-lg">Nenhuma anuidade encontrada.</p>
+          <p className="text-gray-600 text-lg">Nenhuma oportunidade encontrada.</p>
         </div>
       )}
     </div>

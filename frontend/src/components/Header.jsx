@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { LogOut, User, Phone, Menu } from 'lucide-react'
+import { LogOut, User, Phone, Menu, FileText } from 'lucide-react'
 import { useState } from 'react'
 import logoOab from '../assets/logo oab.png'
 
@@ -29,8 +29,8 @@ function Header() {
       {/* Barra principal */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex justify-between items-center">
-          {/* Logo + Título */}
-          <Link to="/" className="flex items-center space-x-3 sm:space-x-4">
+          {/* Logo + Título - ao clicar vai ao dashboard quando logado */}
+          <Link to={isAuthenticated ? '/dashboard' : '/'} className="flex items-center space-x-3 sm:space-x-4">
             <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-full flex items-center justify-center border border-blue-200 shadow">
               <img src={logoOab} alt="Logo OAB" className="w-10 h-10 sm:w-12 sm:h-12 object-contain rounded-full" />
             </div>
@@ -44,6 +44,20 @@ function Header() {
           {isAuthenticated && (
             <nav className="hidden md:flex items-center space-x-8">
               <div className="flex items-center space-x-4">
+                <Link
+                  to="/dashboard"
+                  className="flex items-center gap-1.5 text-sm text-gray-700 hover:text-primary font-medium transition-colors"
+                >
+                  <i className="fi fi-rr-earnings text-lg align-middle" aria-hidden />
+                  Minhas oportunidades
+                </Link>
+                <Link
+                  to="/meus-acordos"
+                  className="flex items-center gap-1.5 text-sm text-gray-700 hover:text-primary font-medium transition-colors"
+                >
+                  <FileText className="w-5 h-5" />
+                  Meus acordos
+                </Link>
                 <div className="flex items-center space-x-2">
                   <User className="w-6 h-6 text-blue-600" />
                   <span className="text-sm text-gray-700">Olá, {primeiroNome}</span>
@@ -76,10 +90,26 @@ function Header() {
           )}
         </div>
 
-        {/* Menu mobile expandido */}
-        {isAuthenticated && menuAberto && (
-          <div className="md:hidden mt-3 pt-3 border-t border-gray-200">
-            <button
+          {/* Menu mobile expandido */}
+          {isAuthenticated && menuAberto && (
+            <div className="md:hidden mt-3 pt-3 border-t border-gray-200 space-y-2">
+              <Link
+                to="/dashboard"
+                className="flex items-center gap-2 text-gray-700 hover:text-primary py-2 w-full"
+                onClick={() => setMenuAberto(false)}
+              >
+                <i className="fi fi-rr-earnings text-base align-middle" aria-hidden />
+                <span className="text-sm font-medium">Minhas oportunidades</span>
+              </Link>
+              <Link
+                to="/meus-acordos"
+                className="flex items-center gap-2 text-gray-700 hover:text-primary py-2 w-full"
+                onClick={() => setMenuAberto(false)}
+              >
+                <FileText className="w-4 h-4" />
+                <span className="text-sm font-medium">Meus acordos</span>
+              </Link>
+              <button
               onClick={handleLogout}
               className="flex items-center space-x-2 text-gray-700 hover:text-red-600 py-2 w-full"
             >
