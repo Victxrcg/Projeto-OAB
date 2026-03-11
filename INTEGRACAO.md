@@ -8,6 +8,26 @@ O frontend é uma aplicação React (SPA) que consome uma API REST para exibir o
 
 ## 1. Configuração da URL da API
 
+### Modo mock (sem backend)
+
+Para rodar o frontend **sem o backend**, use o modo mock com a advogada fictícia Maria.
+
+No arquivo `.env` na raiz de `oab-frontend/`:
+
+```
+VITE_USE_MOCK=true
+```
+
+**CPF de teste da Maria:** `123.456.789-01` (11 dígitos: 12345678901)
+
+Com o mock ativo, não é necessário subir o backend. O login com esse CPF abre o dashboard com anuidades de exemplo (2024 pendente e 2023 quitada) e o fluxo de pagamento funciona localmente.
+
+Para voltar a usar o backend real, altere para `VITE_USE_MOCK=false` e suba o backend na porta 5000.
+
+---
+
+### Modo API real
+
 O frontend lê a URL da API da variável de ambiente `VITE_API_URL`.
 
 ### Opção A: Variável de ambiente (antes do build)
